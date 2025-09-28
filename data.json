@@ -1,0 +1,140 @@
+{
+  "company_info": {
+    "name": "Shyampari Edutech Pvt. Ltd.",
+    "location": "Pune, Maharashtra",
+    "established": "2017",
+    "description": "Education-focused company specializing in personalized tutoring services",
+    "website": "https://www.shyampariedutech.com",
+    "email": "contact@shyampariedutech.com",
+    "boards_supported": ["ICSE", "IGCSE", "CBSE", "IB", "A-Level"]
+  },
+  "services": {
+    "tutoring_modes": {
+      "one_on_one": {
+        "description": "Each student is paired with a qualified educator for customized learning plans",
+        "personalization": true
+      },
+      "group_tuition": {
+        "description": "Small group batches (3-5 students) maintain personalized attention while fostering peer learning",
+        "batch_size": "3-5 students per teacher"
+      },
+      "delivery_modes": ["Online", "Offline", "Hybrid"]
+    },
+    "key_features": [
+      "Assessment-Based Planning with initial diagnostic assessments",
+      "Board-Specific Syllabi aligned with exam patterns",
+      "Concept-Driven Teaching focusing on foundational understanding",
+      "Regular Homework & Practice Tests",
+      "Dedicated Coordinators for communication",
+      "Monthly Progress Reports",
+      "Interactive Doubt-Clearing Sessions",
+      "Motivational Workshops on study skills",
+      "Brainpower Optimization guidance",
+      "Digital Resource Library access"
+    ]
+  },
+  "why_choose_us": {
+    "quality_tutors": {
+      "description": "Tutors with fluent communication skills from STEM backgrounds",
+      "qualifications": ["Engineering", "Pharmacy", "BSc-MSc", "JEE qualified", "GATE qualified"],
+      "location_preference": "Within 5km of student location",
+      "experience": "Home tuitions, coaching, or school teaching experience"
+    },
+    "coordinator_support": {
+      "availability": "24*7 coordinator support",
+      "responsibilities": ["Tutor punctuality", "Daily timing management", "Syllabus completion tracking"]
+    },
+    "counselling_support": {
+      "services": ["Test paper analysis", "Behavior observation", "Mistake pattern identification", "Homework routine analysis", "Learning habits assessment", "Revision technique improvement"]
+    },
+    "tutor_security": {
+      "guarantee": "Replacement tutor provided within 2 weeks if needed",
+      "coverage": "Emergency situations and parent-requested changes"
+    }
+  },
+  "demo_process": {
+    "steps": [
+      "Coordinator call to discuss details",
+      "WhatsApp communication and location sharing",
+      "Demo registration form filling and ₹500 fee payment",
+      "Teacher profile finalization within 2-3 days",
+      "Profile review and demo class observation",
+      "Feedback provision and teacher finalization with 1/3/6 month fee payment"
+    ],
+    "demo_duration": "20-30 minutes",
+    "demo_fee": "₹500 (subject to change and negotiable)"
+  },
+  "parent_guidelines": {
+    "demo_preparation": [
+      "Be available for phone calls and messages",
+      "Prepare child before tutor arrival",
+      "Have at least one parent present during demo",
+      "Direct fee and scheduling queries to coordinator",
+      "Do not share contact details with tutors",
+      "Maintain conducive environment",
+      "Provide constructive feedback after demo"
+    ]
+  },
+  "tutor_guidelines": {
+    "demo_conduct": [
+      "Arrive 10 minutes before scheduled time",
+      "Maintain professional demeanor",
+      "Prepare well-structured introduction",
+      "Do not share personal contact information",
+      "Thoroughly prepare lesson content",
+      "Direct scheduling queries to coordinator",
+      "Review location and details beforehand"
+    ]
+  },
+  "platform_workflow": {
+    "matching_system": {
+      "type": "Recommendation system (not search-filter)",
+      "factors": ["Subject/topic", "Learning goals", "Availability", "Budget", "Past ratings/reviews", "Demo-class outcome", "Engagement signals"]
+    },
+    "student_process": [
+      "Sign up with basic details and preferences",
+      "Receive tutor recommendations",
+      "Book demo sessions",
+      "Attend demo classes with platform tools",
+      "Rate and provide feedback",
+      "Finalize tutor selection",
+      "Complete payment for sessions"
+    ],
+    "tutor_process": [
+      "Create complete profile with qualifications",
+      "Receive student recommendations",
+      "Accept demo requests",
+      "Conduct demo classes",
+      "Wait for student decision",
+      "Begin regular classes after finalization"
+    ]
+  },
+  "payment_policy": {
+    "payment_options": "Secure platform payments",
+    "packages": ["1 month", "3 months", "6 months"],
+    "cancellation": "Rules displayed during checkout",
+    "tutor_payouts": "According to platform schedule after verification"
+  },
+  "common_faqs": [
+    {
+      "question": "What boards do you support?",
+      "answer": "We support ICSE, IGCSE, CBSE, IB, and A-Level educational boards with both online and offline tutoring options."
+    },
+    {
+      "question": "How do you match tutors with students?",
+      "answer": "We use a recommendation system that considers subject/topic, learning goals, availability, budget, past ratings, and demo outcomes to suggest the best matches."
+    },
+    {
+      "question": "What is the demo process?",
+      "answer": "After registration and ₹500 demo fee, we finalize a teacher profile within 2-3 days. You attend a 20-30 minute demo class, provide feedback, and then decide on long-term enrollment."
+    },
+    {
+      "question": "What support do you provide?",
+      "answer": "We offer 24*7 coordinator support, monthly progress reports, counselling sessions, tutor replacement guarantee within 2 weeks, and comprehensive study materials."
+    },
+    {
+      "question": "What are your tutor qualifications?",
+      "answer": "Our tutors come from STEM backgrounds including Engineering, Pharmacy, BSc-MSc, with many being JEE/GATE qualified. They have experience in home tuitions, coaching, or school teaching."
+    }
+  ]
+}
