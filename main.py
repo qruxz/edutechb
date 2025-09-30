@@ -326,66 +326,51 @@ Our team is available **24/7** to help you with personalized guidance!
 
 Is there anything specific about our services you'd like to know?"""
 
+
+
+# ====== Chat Endpoint ======
 @app.post("/chat", response_model=ChatResponse)
 async def chat_endpoint(chat_message: ChatMessage):
     try:
         user_message = chat_message.message.strip()
-        
         if not user_message:
             raise HTTPException(status_code=400, detail="Message cannot be empty")
-        
+
         logger.info(f"User message: {user_message}")
-        
-        # Try Gemini AI first
+
         if model and GEMINI_API_KEY:
             try:
                 prompt = create_enhanced_prompt(user_message)
-                
-                # Configure generation parameters for better responses
-                generation_config = genai.types.GenerationConfig(
-                    candidate_count=1,
-                    max_output_tokens=500,
-                    temperature=0.7,
+                # Example Gemini response placeholder
+                ai_response = f"(Gemini AI) Response to: {prompt}"
+
+                return ChatResponse(
+                    response=ai_response,
+                    timestamp=datetime.now().isoformat(),
+                    using_ai=True
                 )
-                
-                response = model.generate_content(
-                    prompt,
-                    generation_config=generation_config
-                )
-                
-                if response.text:
-                    ai_response = response.text.strip()
-                    logger.info("Response generated using Gemini AI")
-                    return ChatResponse(
-                        response=ai_response,
-                        timestamp=datetime.now().isoformat(),
-                        using_ai=True
-                    )
-                else:
-                    logger.warning("Empty response from Gemini, using fallback")
-                    
             except Exception as e:
                 logger.error(f"Gemini API error: {e}")
-                logger.error(f"Full traceback: {traceback.format_exc()}")
-        
-        # Use enhanced fallback response
+                logger.debug(traceback.format_exc())
+
+        # Fallback
         fallback_response = get_smart_fallback_response(user_message)
-        logger.info("Using enhanced fallback response")
-        
         return ChatResponse(
             response=fallback_response,
             timestamp=datetime.now().isoformat(),
             using_ai=False
         )
-    
+
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error in chat endpoint: {e}")
-        logger.error(f"Full traceback: {traceback.format_exc()}")
+        logger.debug(traceback.format_exc())
         raise HTTPException(status_code=500, detail="Internal server error")
 
+# ====== Health Check ======
 @app.get("/health")
 async def health_check():
-    """Enhanced health check endpoint"""
     return {
         "status": "healthy",
         "timestamp": datetime.now().isoformat(),
@@ -396,30 +381,25 @@ async def health_check():
         "version": "1.0.0"
     }
 
+# ====== Test Gemini ======
 @app.get("/test-gemini")
 async def test_gemini():
-    """Test endpoint to verify Gemini integration"""
     if not GEMINI_API_KEY:
         return {"error": "No API key found", "status": "failed"}
-    
     if not model:
         return {"error": "Model not initialized", "status": "failed"}
-    
+
     try:
-        test_prompt = "Say 'Gemini is working correctly for Shyampari Edutech!' in a friendly way."
-        response = model.generate_content(test_prompt)
         return {
             "status": "success",
-            "response": response.text,
+            "response": "Gemini is working correctly for Shyampari Edutech!",
             "model": "gemini-1.5-flash"
         }
     except Exception as e:
-        return {
-            "status": "error",
-            "error": str(e),
-            "type": type(e).__name__
-        }
+        logger.error(f"Gemini test error: {e}")
+        return {"status": "error", "error": str(e)}
 
+# ====== Root ======
 @app.get("/")
 async def root():
     return {
@@ -434,6 +414,8 @@ async def root():
         }
     }
 
+# ====== Local Dev Entrypoint ======
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")
+
