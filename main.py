@@ -22,7 +22,7 @@ app = FastAPI(title="Shyampari Edutech Chatbot", version="1.0.0")
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://eduf.vercel.app"],  # In production, replace with specific domains
+    allow_origins=["*"],  # In production, replace with specific domains
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
