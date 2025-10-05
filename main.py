@@ -6,11 +6,11 @@ from pydantic import BaseModel
 import json
 import os
 from typing import Optional
-import google.generativeai as genai
 from datetime import datetime
 import logging
 import traceback
 from dotenv import load_dotenv
+import httpx
 
 load_dotenv()
 # Configure logging
@@ -28,28 +28,23 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Configure Gemini API with better error handling
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-model = None
+# Configure Grok API with better error handling
+GROK_API_KEY = os.getenv("GROK_API_KEY")
+GROK_API_URL = "https://api.x.ai/v1/chat/completions"
+grok_available = False
 
-def initialize_gemini():
-    global model
-    if GEMINI_API_KEY:
-        try:
-            genai.configure(api_key=GEMINI_API_KEY)
-            model = genai.GenerativeModel('gemini-1.5-flash')  # Using faster model
-            logger.info("Gemini AI initialized successfully")
-            return True
-        except Exception as e:
-            logger.error(f"Failed to initialize Gemini: {e}")
-            model = None
-            return False
+def initialize_grok():
+    global grok_available
+    if GROK_API_KEY:
+        logger.info("Grok API key found, initializing...")
+        grok_available = True
+        return True
     else:
-        logger.warning("GEMINI_API_KEY not found")
+        logger.warning("GROK_API_KEY not found")
         return False
 
-# Initialize Gemini on startup
-gemini_available = initialize_gemini()
+# Initialize Grok on startup
+grok_available = initialize_grok()
 
 class ChatMessage(BaseModel):
     message: str
@@ -102,7 +97,7 @@ def create_default_knowledge_base():
 knowledge_base = load_knowledge_base()
 
 def create_enhanced_prompt(user_message: str) -> str:
-    """Create a more effective prompt for Gemini with better context"""
+    """Create a more effective prompt for Grok with better context"""
     
     # Create a more focused knowledge summary
     knowledge_summary = f"""
@@ -156,6 +151,65 @@ USER QUESTION: "{user_message}"
 Provide a helpful, accurate response about Shyampari Edutech's services:"""
 
     return prompt
+
+async def get_grok_response(user_message: str) -> Optional[str]:
+    """Get response from Grok API"""
+    if not GROK_API_KEY:
+        logger.warning("No Grok API key available")
+        return None
+    
+    try:
+        prompt = create_enhanced_prompt(user_message)
+        
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {GROK_API_KEY}"
+        }
+        
+        payload = {
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are a helpful AI assistant for Shyampari Edutech, providing information about their tutoring services."
+                },
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+            "model": "grok-beta",
+            "stream": False,
+            "temperature": 0.7,
+            "max_tokens": 500
+        }
+        
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(
+                GROK_API_URL,
+                headers=headers,
+                json=payload
+            )
+            
+            if response.status_code == 200:
+                result = response.json()
+                if result.get("choices") and len(result["choices"]) > 0:
+                    ai_response = result["choices"][0]["message"]["content"].strip()
+                    logger.info("Response generated using Grok AI")
+                    return ai_response
+                else:
+                    logger.warning("Empty response from Grok API")
+                    return None
+            else:
+                logger.error(f"Grok API error: {response.status_code} - {response.text}")
+                return None
+                
+    except httpx.TimeoutException:
+        logger.error("Grok API request timed out")
+        return None
+    except Exception as e:
+        logger.error(f"Grok API error: {e}")
+        logger.error(f"Full traceback: {traceback.format_exc()}")
+        return None
 
 def get_smart_fallback_response(message: str) -> str:
     """Enhanced fallback with better pattern matching"""
@@ -326,96 +380,94 @@ Our team is available **24/7** to help you with personalized guidance!
 
 Is there anything specific about our services you'd like to know?"""
 
-
-
-# ====== Chat Endpoint ======
 @app.post("/chat", response_model=ChatResponse)
 async def chat_endpoint(chat_message: ChatMessage):
     try:
         user_message = chat_message.message.strip()
+        
         if not user_message:
             raise HTTPException(status_code=400, detail="Message cannot be empty")
-
+        
         logger.info(f"User message: {user_message}")
-
-        if model and GEMINI_API_KEY:
-            try:
-                prompt = create_enhanced_prompt(user_message)
-                # Example Gemini response placeholder
-                ai_response = f"(Gemini AI) Response to: {prompt}"
-
+        
+        # Try Grok AI first
+        if grok_available and GROK_API_KEY:
+            ai_response = await get_grok_response(user_message)
+            if ai_response:
                 return ChatResponse(
                     response=ai_response,
                     timestamp=datetime.now().isoformat(),
                     using_ai=True
                 )
-            except Exception as e:
-                logger.error(f"Gemini API error: {e}")
-                logger.debug(traceback.format_exc())
-
-        # Fallback
+        
+        # Use enhanced fallback response
         fallback_response = get_smart_fallback_response(user_message)
+        logger.info("Using enhanced fallback response")
+        
         return ChatResponse(
             response=fallback_response,
             timestamp=datetime.now().isoformat(),
             using_ai=False
         )
-
-    except HTTPException:
-        raise
+    
     except Exception as e:
         logger.error(f"Error in chat endpoint: {e}")
-        logger.debug(traceback.format_exc())
+        logger.error(f"Full traceback: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
-# ====== Health Check ======
 @app.get("/health")
 async def health_check():
+    """Enhanced health check endpoint"""
     return {
         "status": "healthy",
         "timestamp": datetime.now().isoformat(),
-        "gemini_available": bool(model and GEMINI_API_KEY),
+        "grok_available": grok_available,
         "knowledge_base_loaded": bool(knowledge_base),
-        "gemini_model": "gemini-1.5-flash" if model else None,
-        "api_key_present": bool(GEMINI_API_KEY),
+        "grok_model": "grok-beta" if grok_available else None,
+        "api_key_present": bool(GROK_API_KEY),
         "version": "1.0.0"
     }
 
-# ====== Test Gemini ======
-@app.get("/test-gemini")
-async def test_gemini():
-    if not GEMINI_API_KEY:
+@app.get("/test-grok")
+async def test_grok():
+    """Test endpoint to verify Grok integration"""
+    if not GROK_API_KEY:
         return {"error": "No API key found", "status": "failed"}
-    if not model:
-        return {"error": "Model not initialized", "status": "failed"}
-
+    
     try:
-        return {
-            "status": "success",
-            "response": "Gemini is working correctly for Shyampari Edutech!",
-            "model": "gemini-1.5-flash"
-        }
+        test_response = await get_grok_response("Say 'Grok is working correctly for Shyampari Edutech!' in a friendly way.")
+        if test_response:
+            return {
+                "status": "success",
+                "response": test_response,
+                "model": "grok-beta"
+            }
+        else:
+            return {
+                "status": "error",
+                "error": "No response from Grok API"
+            }
     except Exception as e:
-        logger.error(f"Gemini test error: {e}")
-        return {"status": "error", "error": str(e)}
+        return {
+            "status": "error",
+            "error": str(e),
+            "type": type(e).__name__
+        }
 
-# ====== Root ======
 @app.get("/")
 async def root():
     return {
         "message": "Shyampari Edutech Chatbot API",
         "version": "1.0.0",
-        "gemini_status": "active" if model else "fallback",
+        "ai_status": "grok-active" if grok_available else "fallback",
         "endpoints": {
             "/chat": "POST - Send chat messages",
             "/health": "GET - Health check",
-            "/test-gemini": "GET - Test Gemini integration",
+            "/test-grok": "GET - Test Grok integration",
             "/docs": "GET - API documentation"
         }
     }
 
-# ====== Local Dev Entrypoint ======
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000, log_level="info")
-
